@@ -1,0 +1,6 @@
+1. Install ELFIN followings intructions in README.
+2. Remove bin folder from ELFIN installation. 
+   (e.g. "rm -r $HOME/ELFINvxx/bin"), where xx is the version of
+   ELFIN.
+3. Create a symbolic link to bin folder in your git repository folder.
+   (e.g. "ln -s $HOME/ELFINvxx/bin /my/git/repo/path/to/ELFIN/MODULE2/bin")
