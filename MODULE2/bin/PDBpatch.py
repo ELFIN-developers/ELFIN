@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #################
 ### ELFIN  #####
 #################
@@ -43,9 +44,14 @@ class PDBPatch():
 	seq = self.res_seq(answ,res1,res2,res3,res4)
 	self.print_coord_res(seq,chain)
 	
+      elif coordmethod == 5:
+
+	res = self.res(res1)
+	self.print_coord_3Dpatch(res,chain,atomname,dimx,dimy,dimz,spacing)
+	
       else:
 
-	print 'Wrong option, insert 1 or 2 next time...;)'
+	print 'Wrong option, insert 1, 2 or 5 next time...;)'
 	exit()
 
     def res(self,res1):
@@ -157,7 +163,7 @@ else:
 
 chain=load_structure(pdbpqr,chainID)
 
-if option == 1:
+if option == 1 or option == 5:
 
     
     residue = chain[(' ', int(sys.argv[5]) , ' ')]
@@ -169,7 +175,7 @@ elif option == 2:
 
 else:
 
-          print 'Wrong option, insert 1 or 2 next time...;)'
+          print 'Wrong option, insert 1, 2 or 5 next time...;)'
           exit()
 
 

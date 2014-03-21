@@ -50,13 +50,27 @@ proc ::Draw_cube::main { } {
   variable z1
   variable optionex
 
+  set method 1
   set arguments "protein extension chain resID dimx dimy dimz outfolder outname optionex"
   set counter 0
   foreach a $arguments {
     set $a [lindex $argv $counter]
     incr counter
   }
-
+  if {[llength $argv] > [llength $arguments]} {
+    set method [lindex $argv $counter]
+    incr counter
+    if { $method == 2 }  { 
+      set resIDs(1) [lindex $argv $counter]
+      incr counter
+      set resIDs(2) [lindex $argv $counter]
+      incr counter
+      set resIDs(3) [lindex $argv $counter]
+      incr counter
+      set resIDs(4) [lindex $argv $counter]
+      incr counter
+    }
+  }
   switch -exact -- $extension {
     pqr {mol load pqr $protein}
     pdb {mol load pdb $protein}
@@ -70,17 +84,33 @@ proc ::Draw_cube::main { } {
   mol modmaterial Opaque top Transparent
   mol modcolor 0 top ColorID 2
   mol addrep top
-  mol modselect 1 top "same residue as (within [expr {$dimx}] of (chain $chain and resid $resID))"
-  draw color red
-  label add Atoms 0/[[atomselect top "chain $chain and (resid $resID and name CA)"] get index]
-  mol addrep top
-  mol modselect 2 top "chain $chain and resid $resID"
-  mol modstyle 2 top Licorice
-  draw color yellow
-  axes location lowerleft
-  set CA [atomselect top "chain $chain and (resid $resID and name CA)"]
-  set center "[$CA get x] [$CA get y] [$CA get z]"
 
+  if { $method == 1 } {
+    mol modselect 1 top "same residue as (within [expr {$dimx}] of (chain $chain and resid $resID))"
+    draw color red
+    label add Atoms 0/[[atomselect top "chain $chain and (resid $resID and name CA)"] get index]
+    mol addrep top
+    mol modselect 2 top "chain $chain and resid $resID"
+    mol modstyle 2 top Licorice
+    draw color yellow
+    axes location lowerleft
+    set CA [atomselect top "chain $chain and (resid $resID and name CA)"]
+    set center "[$CA get x] [$CA get y] [$CA get z]"
+  } elseif { $method == 2 } {
+    foreach {n resID} [array get resIDs ] {
+      mol modselect [expr {1 + ($n - 1) * 2}] top "same residue as (within [expr {$dimx}] of (chain $chain and resid $resID))"
+      draw color red
+      label add Atoms 0/[[atomselect top "chain $chain and (resid $resID and name CA)"] get index]
+      mol addrep top
+      mol modselect [expr { $n * 2}] top "chain $chain and resid $resID"
+      mol modstyle [expr { $n * 2}] top Licorice
+      draw color yellow
+      lappend residlist $resID
+    }
+    axes location lowerleft
+    set CAs [atomselect top "chain $chain and (resid $residlist and name CA)"]
+    set center [measure center $CAs]
+  }
   set x [expr {[lindex $center 0] - $dimx}]
   set y [expr {[lindex $center 1] - $dimy}]
   set z [expr {[lindex $center 2] - $dimz}]
@@ -115,7 +145,7 @@ proc ::Draw_cube::main_init { } {
     [nN] -
     0 {exit}
   }
-   #if $errflag { error "Something went wrong while aligning\n\nError: \n$errMsg" }
+   
 }
 
 ::Draw_cube::main_init

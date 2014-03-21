@@ -7,6 +7,7 @@
 ### ==> PLEASE HAVE A LOOK AT THE ATTACHED README FILE FOR INSTRUCTIONS!!!
 
 # VERSION
+
 version=0
 
 echo -e "\n########################\n# Welcome to ELFINv${version} #\n########################"
@@ -56,7 +57,10 @@ then
     variables=(dx pdbpqr distsurf coordsource dimx dimy dimz spacing patchmethod displayvmd displayplot) 
   elif [ "${args[2]}" == 4 ]
   then
-    variables=(dx pdbpqr coordsource dimx dimy dimz spacing patchmethod displayvmd displayplot) 
+    variables=(dx pdbpqr coordsource dimx dimy dimz spacing patchmethod displayvmd displayplot)
+  elif [ "${args[3]}" == 5 ]
+  then
+    variables=(dx pdbpqr chain coordsource refres1 refres2 refres3 refres4 dimx dimy dimz spacing patchmethod displayvmd displayplot) 
   else
     echo $error
   fi
@@ -171,6 +175,7 @@ then
   echo -e "2 - Residue coordinates collection:"
   echo -e "3 - Electrostatic surface:\n"
   echo -e "4 - Dimer interface:\n"
+  echo -e "5 - Customize your own patch 4 res:\n"
   echo -n "Please insert 1, 2 or 3 to proceed: "
   read coordsource
 fi
@@ -490,6 +495,70 @@ then
   ${TCL} $ELFINDIR/Pot_Parser.tcl $filename $i $j $k $origx $origy $origz $deltax $deltay $deltaz $coordsource $dimx $dimy $dimz $spacing $protein ${outname} $patchmethod 
   echo -e "  \nTable containing potentials sould be in ${OUTPUT}data\n"
 
+elif [ $coordsource == 5 ]
+then 
+
+  # GETTING CARBON ALPHA COORDINATES FOR A CERTAIN RESIDUE
+  if [ "${refres4}" == "" ]
+  then
+    echo -n "Residues you'll use as reference:"
+    echo "Residue 1:"
+    read refres1
+    echo "Residue 2:"
+    read refres2
+    echo "Residue 3:"
+    read refres3
+    echo "Residue 4:"
+    read refres4
+  fi
+  if [ "${patchmethod}" == "" ]
+  then
+    echo "What are you up to?:"
+    echo -e "1 - Line (1D)\n2 - Slice (2D)\n3 - Cube / Other prism (3D)"
+    echo -n "Insert 1, 2 or 3: "
+    read patchmethod
+  fi
+  if [ "${dimx}" == "" ] 
+  then
+    echo "Desired patch dimensions in angstoms: "
+    echo -n "X:"
+    read dimx
+    if [ "${patchmethod}" -eq 1 ]
+    then
+      dimy=0
+      dimz=0
+    fi
+  fi
+  if [ "${dimy}" == "" ]
+  then
+    echo -n "Y:"
+    read dimy
+    if [ "${patchmethod}" -eq 2 ]
+    then
+      dimy=0
+      dimz=0
+    fi
+  fi
+  if [ "${dimz}" == "" ]
+  then
+    echo -n "Z:"
+    read dimz
+  fi
+  if [ "${spacing}" == "" ]
+  then
+    echo -n "Insert spacing for patch building: "
+    read spacing
+  fi
+  outname=${protein}${chain}$sep${refres1}$sep${refres2}$sep${refres3}$sep${refres4}$sep${dimx}$sep${dimy}$sep${dimz}$sep${spacing}
+  outname2=${outname}_Rcontourn
+  outname3=${outname}_PYcontourn
+
+  # PYTHON ROUTINE: OBTAINING COORDINATES OF REFERENCE RESIDUE
+  ${PYTHON} $ELFINDIR/PDBpatch.py $coordsource $structure $extension $chain $refres1 $refres2 $refres3 $refres4
+
+  # TCL ROUTINE: PARSING DX FILE DATA AND READING ELECTROSTATIC POTENTIAL INTO A TABLE
+  ${TCL} $ELFINDIR/Pot_Parser.tcl $filename $i $j $k $origx $origy $origz $deltax $deltay $deltaz $coordsource $dimx $dimy $dimz $spacing $protein ${outname} $patchmethod 
+  echo -e "  \nTable containing potentials should be in ${OUTPUT}data\n"
 
 else
 
@@ -609,6 +678,10 @@ then
     if [ $coordsource == 4 ] 
     then
       ${VMD} -e $ELFINDIR/Draw_cube_DIMER.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
+    elif [ $coordsource == 5 ]
+    then
+      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres1 $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
+        
     else
       ${VMD} -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
     fi
@@ -621,6 +694,9 @@ then
     if [ $coordsource == 4 ] 
     then
       ${VMD} -dispdev text -e $ELFINDIR/Draw_cube_DIMER.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
+    elif [ $coordsource == 5 ]
+    then
+      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres1 $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
     else
       ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
     fi

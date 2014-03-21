@@ -65,11 +65,12 @@ proc ::Pot_Parser::coord_box args {
   variable method
 
   switch -exact -- $switcher {
-    1 {set CHANNEL0 [open CA.coor r]}
-    2 {set CHANNEL0 [open CA.coor r]}
+    1 -
+    2 -
+    5 {set CHANNEL0 [open CA.coor r]}
     3 {set CHANNEL0 [open surf_centers.coor r]}
     4 {set CHANNEL0 [open dimer.coor r]}
-    default {error {Wrong source of coordinates, please insert 1, 2, 3 or 4 next time}}
+    default {error {Wrong source of coordinates, please insert 1, 2, 3, 4 or 5 next time}}
   }
 
   set patchcenter0 {}
@@ -198,7 +199,8 @@ proc ::Pot_Parser::main {} {
   switch -exact -- $switcher {
     1 -
     2 -
-    4 {
+    4 -
+    5 {
 	set outname "$namestring"
 	set patcheslen 1
       }
@@ -210,7 +212,7 @@ proc ::Pot_Parser::main {} {
 	set outname "$namestring$sep"
       }
     default {
-	error {Wrong source of coordinates, please insert 1, 2, 3 or 4 next time}
+	error {Wrong source of coordinates, please insert 1, 2, 3, 4 or 5 next time}
       }
   }
   
@@ -220,7 +222,8 @@ proc ::Pot_Parser::main {} {
 
     switch -exact -- $switcher {
       1 -
-      4 {
+      4 -
+      5	{
 	  # CALLING CORD_BOX FUNCTION DEFINED ABOVE ALONG WITH REST OF PROCESSES
 	  ::Pot_Parser::coord_box $p
 	  set both [::Pot_Parser::getcoords $coorfile $boxcoor]
@@ -242,7 +245,7 @@ proc ::Pot_Parser::main {} {
 	}
 
       default {
-	  error {Wrong source of coordinates, please insert 1, 2, 3 or 4 next time}
+	  error {Wrong source of coordinates, please insert 1, 2, 3, 4 or 5 next time}
 	}
 
     }
@@ -258,7 +261,8 @@ proc ::Pot_Parser::main {} {
     switch -exact -- $switcher {
       1 -
       3 -
-      4	{
+      4 -
+      5	{
 	  puts $CHANNEL "INDEX\tX\tY\tZ\tPOTENTIAL"
 	  upvar 0 BOXCOORDS POTID 
 	}
@@ -271,7 +275,7 @@ proc ::Pot_Parser::main {} {
 	  }
 	  upvar 0 ATOMS POTID
 	}
-      default {error {Wrong source of coordinates, please insert 1, 2, 3 or 4 next time}}
+      default {error {Wrong source of coordinates, please insert 1, 2, 3, 4 or 5 next time}}
     }
     
     set c 0
@@ -290,37 +294,41 @@ proc ::Pot_Parser::main {} {
     close $CHANNEL
 
     # MERGING Z COORDINATE FOR SUBSEQUENT 3D CONTOURN PLOTTING
-    if {$switcher == 1 || $switcher == 3 || $switcher == 4} {
-      set CHANNEL [open Output/$outname.txt w]
-      puts $CHANNEL "X\tY\tPOTENTIAL"
-      set c 0
-      set d 1
-      set zcounter [expr {round((($dimx+$dimy)/$spacing)+1)}]
-      set potnumlist {}
-      while { $c < [llength $COORDS] } {  
-	foreach a {0 1 2} b {xraw yraw zraw} {
-	  set $b [lindex [lindex $COORDS $c] $a]
-	}
-	set i [expr {round(($xraw - $origx) / $deltax )}]
-	set j [expr {round(($yraw - $origy) / $deltay )}]
-	set k [expr {round(($zraw - $origz) / $deltaz )}]
-	set potnum [expr {($k + $j*$nz + $i*$ny*$nz)}]
-	lappend potnumlist [lindex $POTFILE $potnum]
-	if {$d == $zcounter} {
-	  set e 1
-	  set meanlist {}
-	  while { $e < $zcounter } {
-	    lappend meanlist [lindex $potnumlist [expr {int($c-($zcounter-$e))}]]
-	    incr e
+    switch -exact -- $switcher {
+      1	-
+      3	-
+      5	{
+	set CHANNEL [open Output/$outname.txt w]
+	puts $CHANNEL "X\tY\tPOTENTIAL"
+	set c 0
+	set d 1
+	set zcounter [expr {round((($dimx+$dimy)/$spacing)+1)}]
+	set potnumlist {}
+	while { $c < [llength $COORDS] } {  
+	  foreach a {0 1 2} b {xraw yraw zraw} {
+	    set $b [lindex [lindex $COORDS $c] $a]
 	  }
-	  set mean [/ [+ {*}$meanlist] [llength $meanlist]]
-	  puts $CHANNEL [format "% g\t% g\t% .17f" [lindex [lindex $BOXCOORDS $c] 0] [lindex [lindex $BOXCOORDS $c] 1] $mean]
-	  set d 0
+	  set i [expr {round(($xraw - $origx) / $deltax )}]
+	  set j [expr {round(($yraw - $origy) / $deltay )}]
+	  set k [expr {round(($zraw - $origz) / $deltaz )}]
+	  set potnum [expr {($k + $j*$nz + $i*$ny*$nz)}]
+	  lappend potnumlist [lindex $POTFILE $potnum]
+	  if {$d == $zcounter} {
+	    set e 1
+	    set meanlist {}
+	    while { $e < $zcounter } {
+	      lappend meanlist [lindex $potnumlist [expr {int($c-($zcounter-$e))}]]
+	      incr e
+	    }
+	    set mean [/ [+ {*}$meanlist] [llength $meanlist]]
+	    puts $CHANNEL [format "% g\t% g\t% .17f" [lindex [lindex $BOXCOORDS $c] 0] [lindex [lindex $BOXCOORDS $c] 1] $mean]
+	    set d 0
+	  }
+	  incr c
+	  incr d
 	}
-	incr c
-	incr d
-      }
-    close $CHANNEL
+	close $CHANNEL
+     }
     }
     incr p
   }
