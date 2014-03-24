@@ -140,13 +140,13 @@ def load_structure(pdbpqr,chainID):
 
 def alphacoords(chain, residue):
     '''
-    GET ALPHA CARBON COORDINATES FROM A CERTAIN RESIDUE AND PRINT THEM TO FILE
+    GET ALPHA CARBON COORDINATES FROM A CERTAIN RESIDUE
     '''
-    f = open('CA.coor','wr')
+    
     for atom in residue:
       if atom.name == 'CA':
-	print >>f, round(atom.coord[0], 3), round(atom.coord[1], 3), round(atom.coord[2],3)
-    f.close()
+	return (round(atom.coord[0], 3), round(atom.coord[1], 3), round(atom.coord[2],3))
+    
 
 
 option = int(sys.argv[1])
@@ -164,10 +164,20 @@ else:
 chain=load_structure(pdbpqr,chainID)
 
 if option == 1 or option == 5:
-
-    
-    residue = chain[(' ', int(sys.argv[5]) , ' ')]
-    alphacoords(chain, residue)
+    coords = (0., 0., 0.)
+    if option == 1:
+	reslastindex = 5
+    elif option == 5:
+	reslastindex = len(sys.argv) - 1
+    for i in range(5, reslastindex + 1):
+      residue = chain[(' ', int(sys.argv[i]) , ' ')]
+      coords = tuple([sum(x) for x in zip(*[alphacoords(chain, residue), coords])])
+      
+    resnum = float(reslastindex - 4)
+    coords = tuple([x/resnum for x in coords])
+    f = open('CA.coor','wr')
+    print >>f, round(coords[0], 3), round(coords[1], 3), round(coords[2], 3)
+    f.close()
 
 elif option == 2:
 

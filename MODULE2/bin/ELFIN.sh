@@ -680,10 +680,10 @@ then
       ${VMD} -e $ELFINDIR/Draw_cube_DIMER.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
     elif [ $coordsource == 5 ]
     then
-      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres1 $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
+      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
         
     else
-      ${VMD} -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
+      ${VMD} -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 1 $refres >/dev/null
     fi
   fi
 elif [ "$patchmethod" == 3 ] && [[ "$displayvmd" =~ no|NO|n|0 ]]
@@ -696,9 +696,9 @@ then
       ${VMD} -dispdev text -e $ELFINDIR/Draw_cube_DIMER.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
     elif [ $coordsource == 5 ]
     then
-      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres1 $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
+      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 2 $refres1 $refres2 $refres3 $refres4   >/dev/null
     else
-      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $refres $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} >/dev/null
+      ${VMD} -dispdev text -e $ELFINDIR/Draw_cube.tcl -args $structure $extension $chain $dimx $dimy $dimz ${OUTPUT} ${outname} ${displayvmd} 1 $refres >/dev/null
     fi
   fi
 else

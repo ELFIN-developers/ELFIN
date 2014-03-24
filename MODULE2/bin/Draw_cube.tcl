@@ -51,26 +51,17 @@ proc ::Draw_cube::main { } {
   variable optionex
 
   set method 1
-  set arguments "protein extension chain resID dimx dimy dimz outfolder outname optionex"
+  set arguments "protein extension chain dimx dimy dimz outfolder outname optionex method"
   set counter 0
   foreach a $arguments {
     set $a [lindex $argv $counter]
     incr counter
   }
-  if {[llength $argv] > [llength $arguments]} {
-    set method [lindex $argv $counter]
-    incr counter
-    if { $method == 2 }  { 
-      set resIDs(1) [lindex $argv $counter]
-      incr counter
-      set resIDs(2) [lindex $argv $counter]
-      incr counter
-      set resIDs(3) [lindex $argv $counter]
-      incr counter
-      set resIDs(4) [lindex $argv $counter]
-      incr counter
-    }
+     
+  for {set i 1} {$counter < [llength $argv]} {incr i; incr counter} {
+    set resIDs($i) [lindex $argv $counter]
   }
+
   switch -exact -- $extension {
     pqr {mol load pqr $protein}
     pdb {mol load pdb $protein}
@@ -86,6 +77,7 @@ proc ::Draw_cube::main { } {
   mol addrep top
 
   if { $method == 1 } {
+    set resID $resIDs(1)
     mol modselect 1 top "same residue as (within [expr {$dimx}] of (chain $chain and resid $resID))"
     draw color red
     label add Atoms 0/[[atomselect top "chain $chain and (resid $resID and name CA)"] get index]
